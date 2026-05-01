@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LigaPro Predictor — Modelo Predictivo del Rendimiento Deportivo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f6f8fb;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #ffffff;
+            --border: #e4e8ef;
+            --border-strong: #cdd4df;
+            --accent: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.18);
+            --accent-2: #7c3aed;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+            background-image:
+                radial-gradient(at 20% 0%, rgba(37, 99, 235, 0.07) 0px, transparent 50%),
+                radial-gradient(at 80% 100%, rgba(124, 58, 237, 0.06) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .topbar {
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .topbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 18px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand-logo {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: grid; place-items: center;
+            font-weight: 800; font-size: 18px; color: white;
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+        .brand-title { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+        .brand-sub { font-size: 12px; color: var(--text-muted); }
+
+        .badges { display: flex; gap: 8px; }
+        .pill {
+            font-size: 11px; font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border-strong);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-secondary);
+        }
+        .pill-ok { color: var(--success); border-color: rgba(52, 211, 153, 0.3); }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 28px 64px;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+        }
+        @media (max-width: 980px) { main { grid-template-columns: 1fr; } }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .card-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+        .card-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+        .section-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 11px; font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 24px 0 12px;
+        }
+        .section-label::before {
+            content: '';
+            width: 4px; height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+        .section-label:first-child { margin-top: 0; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .field-input, .field-select {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 12px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.15s;
+            outline: none;
+        }
+        .field-input:focus, .field-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .field-input::placeholder { color: var(--text-muted); }
+
+        .model-picker {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        @media (max-width: 600px) { .model-picker { grid-template-columns: 1fr 1fr; } }
+        .model-option {
+            position: relative;
+            cursor: pointer;
+        }
+        .model-option input { position: absolute; opacity: 0; pointer-events: none; }
+        .model-option-card {
+            border: 1px solid var(--border);
+            background: var(--bg-input);
+            border-radius: 10px;
+            padding: 12px 10px;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        .model-option-card .name {
+            font-weight: 700; font-size: 13px;
+            color: var(--text-primary);
+        }
+        .model-option-card .desc {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .model-option input:checked ~ .model-option-card {
+            border-color: var(--accent);
+            background: linear-gradient(180deg, rgba(79, 156, 249, 0.15), rgba(79, 156, 249, 0.05));
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .model-option input:checked ~ .model-option-card .name { color: var(--accent); }
+
+        .submit-btn {
+            margin-top: 24px;
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 11px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 8px 24px var(--accent-glow);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 32px var(--accent-glow); }
+        .submit-btn:active { transform: translateY(0); }
+        .submit-btn:disabled { opacity: 0.6; cursor: wait; }
+
+        /* Sidebar de resultados */
+        .result-card {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .result-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .result-empty-icon {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            display: grid; place-items: center;
+            margin: 0 auto 16px;
+            font-size: 24px;
+        }
+
+        .result-points {
+            text-align: center;
+            padding: 12px 0 20px;
+        }
+        .points-value {
+            font-size: 56px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            font-feature-settings: 'tnum';
+        }
+        .points-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 6px;
+        }
+
+        .zone-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 8px 0;
+        }
+        .zone-titulo { background: rgba(52, 211, 153, 0.15); color: var(--success); border: 1px solid rgba(52, 211, 153, 0.3); }
+        .zone-copa   { background: rgba(79, 156, 249, 0.15); color: var(--accent);  border: 1px solid rgba(79, 156, 249, 0.3); }
+        .zone-media  { background: rgba(251, 191, 36, 0.15); color: var(--warning); border: 1px solid rgba(251, 191, 36, 0.3); }
+        .zone-desc   { background: rgba(248, 113, 113, 0.15); color: var(--danger); border: 1px solid rgba(248, 113, 113, 0.3); }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+        .metric {
+            text-align: center;
+            padding: 10px 6px;
+            background: var(--bg-input);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .metric-value {
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+        .metric-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 2px;
+        }
+
+        .model-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            background: var(--bg-input);
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 8px;
+        }
+        .model-tag::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .alert {
+            margin-top: 16px;
+            padding: 12px 14px;
+            background: rgba(248, 113, 113, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            border-radius: 9px;
+            font-size: 13px;
+        }
+
+        .info-card {
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+        .info-card strong { color: var(--text-secondary); }
+
+        /* Animaciones */
+        .fade-in {
+            animation: fadeUp 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="brand">
+            <div class="brand-logo">L</div>
+            <div>
+                <div class="brand-title">LigaPro Serie A</div>
+                <div class="brand-sub">Modelo Predictivo del Rendimiento Deportivo</div>
+            </div>
+        </div>
+        <div class="badges">
+            <span class="pill">2019 — 2026</span>
+            <span class="pill pill-ok">API conectada</span>
+        </div>
+    </div>
+</header>
+
+<main>
+    <!-- Formulario -->
+    <section class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Parámetros de la temporada</div>
+                <div class="card-sub">Variables conocidas antes de iniciar el torneo</div>
+            </div>
+        </div>
+
+        <form id="formPrediccion">
+            <div class="section-label">Modelo de predicción</div>
+            <div class="model-picker">
+                <label class="model-option">
+                    <input type="radio" name="modelo_seleccionado" value="mejor" checked>
+                    <div class="model-option-card">
+                        <div class="name">Auto</div>
+                        <div class="desc">Mejor por MAE</div>
+                    </div>
+                </label>
+                <label class="model-option">
+                    <input type="radio" name="modelo_seleccionado" value="ridge">
+                    <div class="model-option-card">
+                        <div class="name">Ridge</div>
+                        <div class="desc">Lineal + L2</div>
+                    </div>
+                </label>
+                <label class="model-option">
+                    <input type="radio" name="modelo_seleccionado" value="rf">
+                    <div class="model-option-card">
+                        <div class="name">Random Forest</div>
+                        <div class="desc">500 árboles</div>
+                    </div>
+                </label>
+                <label class="model-option">
+                    <input type="radio" name="modelo_seleccionado" value="xgb">
+                    <div class="model-option-card">
+                        <div class="name">XGBoost</div>
+                        <div class="desc">Gradient boosting</div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="section-label">Recursos del club</div>
+            <div class="grid">
+                <div class="field">
+                    <label class="field-label">Presupuesto (M USD)</label>
+                    <input type="number" step="0.1" name="presupuesto_musd" class="field-input" value="5.0" required>
+                </div>
+                <div class="field">
+                    <label class="field-label">Salario promedio (K USD)</label>
+                    <input type="number" step="1" name="salario_promedio_kusd" class="field-input" value="120" required>
+                </div>
+                <div class="field">
+                    <label class="field-label">Inversión refuerzos (M USD)</label>
+                    <input type="number" step="0.1" name="inversion_refuerzos_musd" class="field-input" value="1.5" required>
+                </div>
+            </div>
+
+            <div class="section-label">Plantilla y cuerpo técnico</div>
+            <div class="grid">
+                <div class="field">
+                    <label class="field-label">Edad promedio</label>
+                    <input type="number" step="0.1" name="edad_promedio_plantilla" class="field-input" value="26.5" required>
+                </div>
+                <div class="field">
+                    <label class="field-label">Extranjeros</label>
+                    <input type="number" step="1" name="extranjeros_plantilla" class="field-input" value="6" required>
+                </div>
+                <div class="field">
+                    <label class="field-label">Antigüedad DT (meses)</label>
+                    <input type="number" step="1" name="antiguedad_dt_meses" class="field-input" value="12" required>
+                </div>
+            </div>
+
+            <div class="section-label">Contexto institucional</div>
+            <div class="grid">
+                <div class="field">
+                    <label class="field-label">Participación CONMEBOL</label>
+                    <select name="participacion_internacional" class="field-select" required>
+                        <option value="0">Sin participación</option>
+                        <option value="6" selected>Sí (fase de grupos)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Capacidad estadio</label>
+                    <input type="number" step="1" name="capacidad_estadio" class="field-input" value="40000" required>
+                </div>
+                <div class="field">
+                    <label class="field-label">Posición anterior</label>
+                    <input type="number" step="1" min="1" max="16" name="posicion_temporada_anterior" class="field-input" value="6" required>
+                </div>
+            </div>
+
+            <div class="section-label">Rendimiento temporada anterior</div>
+            <div class="grid">
+                <div class="field">
+                    <label class="field-label">Goles a favor</label>
+                    <input type="number" step="1" name="goles_favor_ant" class="field-input" value="35" required>
+                </div>
+                <div class="field">
+                    <label class="field-label">Goles en contra</label>
+                    <input type="number" step="1" name="goles_contra_ant" class="field-input" value="38" required>
+                </div>
+                <div class="field">
+                    <label class="field-label">Diferencia goles</label>
+                    <input type="number" step="1" name="diferencia_goles_ant" class="field-input" value="-3" required>
+                </div>
+                <div class="field">
+                    <label class="field-label">xG (Expected Goals)</label>
+                    <input type="number" step="0.01" name="xg_ant" class="field-input" value="33.2" required>
+                </div>
+                <div class="field">
+                    <label class="field-label">Posesión promedio (%)</label>
+                    <input type="number" step="0.1" name="posesion_ant" class="field-input" value="49.8" required>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="btnSubmit">
+                Calcular puntos proyectados
+            </button>
+
+            <div id="alertaError" class="alert hidden"></div>
+        </form>
+    </section>
+
+    <!-- Resultados -->
+    <aside class="card result-card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Predicción</div>
+                <div class="card-sub">Puntos al cierre de temporada</div>
+            </div>
+        </div>
+
+        <div id="estadoVacio" class="result-empty">
+            <div class="result-empty-icon">⚽</div>
+            <div>Completa los parámetros y presiona <strong>Calcular</strong> para ver la predicción.</div>
+        </div>
+
+        <div id="panelResultado" class="hidden">
+            <div class="result-points">
+                <div class="points-value" id="txtPuntos">--</div>
+                <div class="points-label">puntos estimados</div>
+                <div id="txtZona" class="zone-badge"></div>
+                <div><span id="txtModelo" class="model-tag"></span></div>
+            </div>
+
+            <div class="metrics-row">
+                <div class="metric">
+                    <div class="metric-value" id="metMae">--</div>
+                    <div class="metric-label">MAE</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="metRmse">--</div>
+                    <div class="metric-label">RMSE</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="metR2">--</div>
+                    <div class="metric-label">R²</div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <strong>Métricas en validación (2024).</strong>
+                MAE = error promedio en puntos. R² más cercano a 1 indica mejor explicación de la varianza.
+            </div>
+        </div>
+    </aside>
+</main>
+
+<script>
+    const camposEnteros = new Set([
+        "extranjeros_plantilla", "antiguedad_dt_meses",
+        "participacion_internacional", "capacidad_estadio",
+        "posicion_temporada_anterior", "goles_favor_ant",
+        "goles_contra_ant", "diferencia_goles_ant"
+    ]);
+
+    const form = document.getElementById('formPrediccion');
+    const btn = document.getElementById('btnSubmit');
+    const alerta = document.getElementById('alertaError');
+    const estadoVacio = document.getElementById('estadoVacio');
+    const panel = document.getElementById('panelResultado');
+
+    function clasificarZona(p) {
+        if (p >= 70) return { txt: 'Zona de título', cls: 'zone-titulo' };
+        if (p >= 55) return { txt: 'Clasificación CONMEBOL', cls: 'zone-copa' };
+        if (p >= 40) return { txt: 'Zona media', cls: 'zone-media' };
+        return { txt: 'Lucha por permanencia', cls: 'zone-desc' };
+    }
+
+    function animarNumero(el, destino, duracion = 800) {
+        const inicio = parseFloat(el.textContent) || 0;
+        const t0 = performance.now();
+        function step(t) {
+            const p = Math.min((t - t0) / duracion, 1);
+            const eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = (inicio + (destino - inicio) * eased).toFixed(1);
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alerta.classList.add('hidden');
+        btn.disabled = true;
+        const textoOriginal = btn.textContent;
+        btn.textContent = 'Calculando...';
+
+        const payload = Object.fromEntries(new FormData(e.target));
+        for (const k in payload) {
+            if (k === 'modelo_seleccionado') continue;
+            payload[k] = camposEnteros.has(k) ? parseInt(payload[k], 10) : parseFloat(payload[k]);
+        }
+
+        try {
+            const res = await fetch('http://localhost:8000/predecir', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+            const data = await res.json();
+
+            estadoVacio.classList.add('hidden');
+            panel.classList.remove('hidden');
+            panel.classList.remove('fade-in'); void panel.offsetWidth; panel.classList.add('fade-in');
+
+            animarNumero(document.getElementById('txtPuntos'), data.puntos);
+
+            const zona = clasificarZona(data.puntos);
+            const elZona = document.getElementById('txtZona');
+            elZona.textContent = zona.txt;
+            elZona.className = 'zone-badge ' + zona.cls;
+
+            document.getElementById('txtModelo').textContent = `Modelo: ${data.modelo_usado}`;
+
+            const m = data.metricas || {};
+            document.getElementById('metMae').textContent  = m.MAE !== undefined ? m.MAE.toFixed(2) : '—';
+            document.getElementById('metRmse').textContent = m.RMSE !== undefined ? m.RMSE.toFixed(2) : '—';
+            document.getElementById('metR2').textContent   = m.R2 !== undefined ? m.R2.toFixed(3) : '—';
+        } catch (err) {
+            alerta.classList.remove('hidden');
+            alerta.textContent = `${err.message}. Asegúrate de que el backend esté corriendo en http://localhost:8000`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = textoOriginal;
+        }
+    });
+
+    // Auto-calcular diferencia de goles
+    const gf = document.querySelector('[name="goles_favor_ant"]');
+    const gc = document.querySelector('[name="goles_contra_ant"]');
+    const dg = document.querySelector('[name="diferencia_goles_ant"]');
+    function actualizarDif() {
+        const v1 = parseInt(gf.value, 10);
+        const v2 = parseInt(gc.value, 10);
+        if (!isNaN(v1) && !isNaN(v2)) dg.value = v1 - v2;
+    }
+    gf.addEventListener('input', actualizarDif);
+    gc.addEventListener('input', actualizarDif);
+</script>
+</body>
+</html>

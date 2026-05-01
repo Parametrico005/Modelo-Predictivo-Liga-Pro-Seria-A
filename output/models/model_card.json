@@ -1,0 +1,84 @@
+{
+  "modelos": {
+    "ridge": {
+      "validacion": {
+        "MAE": 6.6512,
+        "RMSE": 7.828,
+        "R2": 0.6264,
+        "Spearman": 0.7237
+      },
+      "test": {
+        "MAE": 14.7815,
+        "RMSE": 17.1671,
+        "R2": -0.195,
+        "Spearman": 0.5771
+      }
+    },
+    "randomforest": {
+      "validacion": {
+        "MAE": 9.2815,
+        "RMSE": 10.9369,
+        "R2": 0.2708,
+        "Spearman": 0.4657
+      },
+      "test": {
+        "MAE": 12.9719,
+        "RMSE": 15.6052,
+        "R2": 0.0126,
+        "Spearman": 0.6273
+      }
+    },
+    "xgboost": {
+      "validacion": {
+        "MAE": 11.388,
+        "RMSE": 13.25,
+        "R2": -0.0703,
+        "Spearman": 0.2741
+      },
+      "test": {
+        "MAE": 12.9562,
+        "RMSE": 15.4101,
+        "R2": 0.0371,
+        "Spearman": 0.5063
+      }
+    }
+  },
+  "mejor_modelo": "ridge",
+  "features": [
+    "presupuesto_musd",
+    "salario_promedio_kusd",
+    "inversion_refuerzos_musd",
+    "edad_promedio_plantilla",
+    "extranjeros_plantilla",
+    "antiguedad_dt_meses",
+    "participacion_internacional",
+    "capacidad_estadio",
+    "posicion_temporada_anterior",
+    "goles_favor_ant",
+    "goles_contra_ant",
+    "diferencia_goles_ant",
+    "xg_ant",
+    "posesion_ant"
+  ],
+  "target": "puntos_temporada",
+  "particion": {
+    "train": [
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "val": [
+      2024
+    ],
+    "test": [
+      2025
+    ]
+  },
+  "n_filas": {
+    "train": 80,
+    "val": 16,
+    "test": 16
+  }
+}
