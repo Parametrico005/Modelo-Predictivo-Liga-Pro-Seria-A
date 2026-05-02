@@ -72,24 +72,7 @@ LigaPro Serie A/
 
 ---
 
-## Pipeline de datos
 
-```
-data/categorias/*.csv
-        |
-        |  scripts/consolidar_dataset.py
-        v
-data/datasets/dataset_final.csv  (+ train/val/test)
-        |
-        |  scripts/entrenamiento.py
-        v
-output/models/*.joblib
-        |
-        |  scripts/predecir_equipo.py   (CLI)
-        |  output/main.py + index.html  (UI)
-        v
-        prediccion
-```
 
 
 ## Modelos comparados
