@@ -91,56 +91,6 @@ output/models/*.joblib
         prediccion
 ```
 
-**Categorizacion de variables:**
-
-| Categoria | Variables |
-|---|---|
-| Presupuestarias | presupuesto, salario promedio, inversion en refuerzos, valor del plantel, cantidad de fichajes, ingresos CONMEBOL, estimado de sueldos |
-| Competitivas | edad promedio, extranjeros, antiguedad DT, participacion internacional, capacidad estadio, rendimiento ofensivo (goles favor, xG, posesion), rendimiento defensivo (goles contra), posiciones (puntos, posicion final, posicion anterior), eficiencia |
-
----
-
-## Como ejecutar
-
-### 1. Instalar dependencias
-
-```bash
-cd "output"
-pip install -r requirements.txt
-```
-
-### 2. (Opcional) Reentrenar modelos
-
-```bash
-python scripts/consolidar_dataset.py     # regenera dataset_final
-python scripts/entrenamiento.py          # ajusta los 3 modelos
-```
-
-### 3. Levantar backend de inferencia
-
-```bash
-python output/main.py                    # API en http://localhost:8000
-```
-
-### 4. Abrir la interfaz
-
-Doble clic en `output/index.html`, o servirla con:
-
-```bash
-cd output
-python -m http.server 5500
-# luego abrir http://localhost:5500
-```
-
-### 5. Prediccion por linea de comandos
-
-```bash
-python scripts/predecir_equipo.py        # interactivo
-python scripts/prediccion.py --csv_entrada data/datasets/test.csv \
-                              --csv_salida prediccion_2025.csv
-```
-
----
 
 ## Modelos comparados
 
