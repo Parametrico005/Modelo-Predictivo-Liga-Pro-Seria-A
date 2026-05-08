@@ -368,7 +368,7 @@
         </div>
         <div class="badges">
             <span class="pill">2019 — 2026</span>
-            <span class="pill pill-ok">API conectada</span>
+            <span class="pill pill-ok">Modo local</span>
         </div>
     </div>
 </header>
@@ -577,6 +577,77 @@
         requestAnimationFrame(step);
     }
 
+    // ── Parámetros Ridge (embebidos; no requiere backend) ──────────────────
+    const RIDGE = {
+        mean:  [5.5337481125,138.3437028125,3.0413837499999996,24.589625,6.0,10.0,1.5,22668.75,7.73125,28.4875,39.8375,-11.35,27.04125,49.684999999999995],
+        scale: [4.125805756511145,103.14514391277862,3.2428303421798197,1.2174886485610448,1.0,1.0,2.598076211353316,15253.061936460495,3.332551340564763,4.533193548702725,4.103180930692674,8.628586210961794,4.316615970583902,1.518889396894981],
+        coef:  [1.6594100523909536,1.6594100523909738,3.524579318461323,-1.1360715017204475,0.0,0.0,2.703462036576444,0.5955227674661583,-1.976459491195061,0.09333990138961402,0.8222969823171616,-0.34199176855248825,-1.6137356696369827,1.4117183876971868],
+        intercept: 43.012499999999996
+    };
+
+    // Métricas de validación (2024) por modelo
+    const METRICAS = {
+        ridge:  { MAE: 6.6512,  RMSE: 7.828,  R2: 0.6264 },
+        mejor:  { MAE: 6.6512,  RMSE: 7.828,  R2: 0.6264 },
+        rf:     { MAE: 9.2815,  RMSE: 10.9369, R2: 0.2708 },
+        xgb:    { MAE: 11.388,  RMSE: 13.25,   R2: -0.0703 }
+    };
+
+    // Orden de features según model_card.json
+    const FEATURES = [
+        'presupuesto_musd','salario_promedio_kusd','inversion_refuerzos_musd',
+        'edad_promedio_plantilla','extranjeros_plantilla','antiguedad_dt_meses',
+        'participacion_internacional','capacidad_estadio','posicion_temporada_anterior',
+        'goles_favor_ant','goles_contra_ant','diferencia_goles_ant','xg_ant','posesion_ant'
+    ];
+
+    // Caché de modelos RF y XGB (cargados la primera vez que se necesitan)
+    const modelCache = {};
+
+    async function loadModel(name) {
+        if (modelCache[name]) return modelCache[name];
+        const res = await fetch(`models/${name}_model.json`);
+        if (!res.ok) throw new Error(`No se pudo cargar el modelo ${name}`);
+        modelCache[name] = await res.json();
+        return modelCache[name];
+    }
+
+    function predictRidge(x) {
+        let result = RIDGE.intercept;
+        for (let i = 0; i < x.length; i++)
+            result += ((x[i] - RIDGE.mean[i]) / RIDGE.scale[i]) * RIDGE.coef[i];
+        return result;
+    }
+
+    function traverseRF(tree, x) {
+        let node = 0;
+        while (tree.f[node] !== -2)  // -2 = TREE_UNDEFINED (hoja)
+            node = x[tree.f[node]] <= tree.t[node] ? tree.l[node] : tree.r[node];
+        return tree.v[node];
+    }
+
+    function predictRF(x, params) {
+        const sc = params.scaler;
+        const xs = x.map((v, i) => (v - sc.mean[i]) / sc.scale[i]);
+        const sum = params.trees.reduce((acc, t) => acc + traverseRF(t, xs), 0);
+        return sum / params.trees.length;
+    }
+
+    function traverseXGB(nodes, x) {
+        let node = 0;
+        while (!('leaf' in nodes[node])) {
+            const n = nodes[node];
+            node = x[n.f] < n.t ? n.y : n.n;
+        }
+        return nodes[node].leaf;
+    }
+
+    function predictXGB(x, params) {
+        const sc = params.scaler;
+        const xs = x.map((v, i) => (v - sc.mean[i]) / sc.scale[i]);
+        return params.trees.reduce((acc, t) => acc + traverseXGB(t, xs), params.base_score);
+    }
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         alerta.classList.add('hidden');
@@ -591,34 +662,46 @@
         }
 
         try {
-            const res = await fetch('http://localhost:8000/predecir', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-            const data = await res.json();
+            const modelKey = payload.modelo_seleccionado;
+            const x = FEATURES.map(f => payload[f]);
+            let puntos;
+
+            if (modelKey === 'ridge' || modelKey === 'mejor') {
+                puntos = predictRidge(x);
+            } else if (modelKey === 'rf') {
+                btn.textContent = 'Cargando modelo...';
+                const params = await loadModel('rf');
+                puntos = predictRF(x, params);
+            } else if (modelKey === 'xgb') {
+                btn.textContent = 'Cargando modelo...';
+                const params = await loadModel('xgb');
+                puntos = predictXGB(x, params);
+            } else {
+                puntos = predictRidge(x);
+            }
+
+            puntos = Math.round(puntos * 100) / 100;
 
             estadoVacio.classList.add('hidden');
             panel.classList.remove('hidden');
             panel.classList.remove('fade-in'); void panel.offsetWidth; panel.classList.add('fade-in');
 
-            animarNumero(document.getElementById('txtPuntos'), data.puntos);
+            animarNumero(document.getElementById('txtPuntos'), puntos);
 
-            const zona = clasificarZona(data.puntos);
+            const zona = clasificarZona(puntos);
             const elZona = document.getElementById('txtZona');
             elZona.textContent = zona.txt;
             elZona.className = 'zone-badge ' + zona.cls;
 
-            document.getElementById('txtModelo').textContent = `Modelo: ${data.modelo_usado}`;
+            document.getElementById('txtModelo').textContent = `Modelo: ${modelKey.toUpperCase()}`;
 
-            const m = data.metricas || {};
-            document.getElementById('metMae').textContent  = m.MAE !== undefined ? m.MAE.toFixed(2) : '—';
+            const m = METRICAS[modelKey] || {};
+            document.getElementById('metMae').textContent  = m.MAE  !== undefined ? m.MAE.toFixed(2)  : '—';
             document.getElementById('metRmse').textContent = m.RMSE !== undefined ? m.RMSE.toFixed(2) : '—';
-            document.getElementById('metR2').textContent   = m.R2 !== undefined ? m.R2.toFixed(3) : '—';
+            document.getElementById('metR2').textContent   = m.R2   !== undefined ? m.R2.toFixed(3)   : '—';
         } catch (err) {
             alerta.classList.remove('hidden');
-            alerta.textContent = `${err.message}. Asegúrate de que el backend esté corriendo en http://localhost:8000`;
+            alerta.textContent = `Error al calcular la predicción: ${err.message}`;
         } finally {
             btn.disabled = false;
             btn.textContent = textoOriginal;
