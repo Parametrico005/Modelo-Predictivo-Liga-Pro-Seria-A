@@ -78,9 +78,6 @@ LigaPro Serie A/
 │   └── 01_ligapro_COLAB.ipynb                  (EDA + modelado)
 │
 └── docs/
-    ├── Informe_Final_LigaPro.docx              (informe principal S1-S8)
-    ├── S9-ANEXOS DE VALIDACION.docx            (validacion / robustez)
-    ├── S10-INFORME-FINAL-Y-PRESENTACION.docx   (entrega final - editable)
     └── S10-INFORME-FINAL-Y-PRESENTACION.pdf    (entrega final - PDF)
 ```
 
