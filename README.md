@@ -11,8 +11,15 @@ El proyecto entrega:
   por tipo de variable (presupuestaria / competitiva).
 - Tres modelos comparados: Ridge, Random Forest y XGBoost. Se selecciona
   automaticamente el mejor por MAE en validacion.
-- Backend FastAPI + interfaz web moderna para inferencia interactiva.
-- Documento academico en Word (`docs/Informe_Final_LigaPro.docx`).
+- Interfaz web 100% offline (`output/index.html`) con inferencia en
+  JavaScript a partir de los modelos exportados a JSON. Backend FastAPI
+  opcional para despliegue como API.
+- Documentacion academica completa en `docs/`:
+  - `Informe_Final_LigaPro.docx` (informe principal del proyecto).
+  - `S9-ANEXOS DE VALIDACION.docx` (validacion, robustez e
+    interpretabilidad).
+  - `S10-INFORME-FINAL-Y-PRESENTACION.pdf` y `.docx` (entrega final y
+    guion del pitch del proyecto).
 
 ---
 
@@ -49,25 +56,69 @@ LigaPro Serie A/
 │   ├── consolidar_dataset.py                   (categorias -> dataset_final)
 │   ├── preprocesamiento.py                     (FEATURES, TARGET, splits)
 │   ├── entrenamiento.py                        (entrena los 3 modelos)
+│   ├── exportar_modelos_json.py                (.joblib -> .json para web)
 │   ├── prediccion.py                           (inferencia batch desde CSV)
-│   └── predecir_equipo.py                      (inferencia interactiva)
+│   ├── predecir_equipo.py                      (inferencia interactiva)
+│   ├── generar_s9_anexos.py                    (genera S9-ANEXOS.docx)
+│   ├── generar_s10_informe_final.py            (genera S10-INFORME.docx)
+│   └── generar_s10_pdf.py                      (genera S10-INFORME.pdf)
 │
-├── output/                                     <- API + UI + MODELOS
-│   ├── main.py                                 (backend FastAPI)
-│   ├── index.html                              (UI moderna)
+├── output/                                     <- UI + MODELOS
+│   ├── index.html                              (UI moderna offline)
+│   ├── main.py                                 (backend FastAPI opcional)
 │   ├── requirements.txt
 │   └── models/
 │       ├── ridge.joblib
 │       ├── randomforest.joblib
 │       ├── xgboost.joblib
 │       ├── mejor_modelo.joblib                 (copia del mejor por MAE)
+│       ├── ridge_model.json                    (pesos para inferencia JS)
+│       ├── rf_model.json
+│       ├── xgb_model.json
 │       └── model_card.json                     (metricas + features + splits)
 │
 ├── notebooks/
 │   └── 01_ligapro_COLAB.ipynb                  (EDA + modelado)
 │
 └── docs/
-    └── Informe_Final_LigaPro.docx              (documento academico)
+    ├── Informe_Final_LigaPro.docx              (informe principal S1-S8)
+    ├── S9-ANEXOS DE VALIDACION.docx            (validacion / robustez)
+    ├── S10-INFORME-FINAL-Y-PRESENTACION.docx   (entrega final - editable)
+    └── S10-INFORME-FINAL-Y-PRESENTACION.pdf    (entrega final - PDF)
+```
+
+---
+
+## Reproducir el prototipo (paso a paso)
+
+```bash
+# 1. Clonar el repositorio
+git clone <repo-url> && cd Modelo-Predictivo-Liga-Pro-Seria-A
+
+# 2. Instalar dependencias (necesarias solo para reentrenar)
+pip install -r output/requirements.txt
+
+# 3. Consolidar dataset desde CSV por categoria
+python scripts/consolidar_dataset.py
+
+# 4. Entrenar los tres modelos y seleccionar el mejor por MAE val
+python scripts/entrenamiento.py
+
+# 5. Exportar los modelos a JSON para uso en el navegador
+python scripts/exportar_modelos_json.py
+
+# 6. Abrir la interfaz web (no requiere servidor)
+#    Doble click sobre output/index.html
+#    o, opcionalmente, levantar un servidor estatico:
+cd output && python -m http.server 5500
+# y abrir http://localhost:5500
+```
+
+Para regenerar el informe final S10 (.docx + .pdf):
+
+```bash
+python scripts/generar_s10_informe_final.py    # produce el .docx
+python scripts/generar_s10_pdf.py              # produce el .pdf
 ```
 
 ---
