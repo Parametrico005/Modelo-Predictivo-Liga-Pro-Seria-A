@@ -83,14 +83,7 @@ LigaPro Serie A/
 
 
 
-Para regenerar el informe final S10 (.docx + .pdf):
 
-```bash
-python scripts/generar_s10_informe_final.py    # produce el .docx
-python scripts/generar_s10_pdf.py              # produce el .pdf
-```
-
----
 
 
 
