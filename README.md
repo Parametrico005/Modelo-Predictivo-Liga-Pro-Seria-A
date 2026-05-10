@@ -81,32 +81,7 @@ LigaPro Serie A/
     └── S10-INFORME-FINAL-Y-PRESENTACION.pdf    (entrega final - PDF)
 ```
 
----
 
-## Reproducir el prototipo (paso a paso)
-
-```bash
-# 1. Clonar el repositorio
-git clone <repo-url> && cd Modelo-Predictivo-Liga-Pro-Seria-A
-
-# 2. Instalar dependencias (necesarias solo para reentrenar)
-pip install -r output/requirements.txt
-
-# 3. Consolidar dataset desde CSV por categoria
-python scripts/consolidar_dataset.py
-
-# 4. Entrenar los tres modelos y seleccionar el mejor por MAE val
-python scripts/entrenamiento.py
-
-# 5. Exportar los modelos a JSON para uso en el navegador
-python scripts/exportar_modelos_json.py
-
-# 6. Abrir la interfaz web (no requiere servidor)
-#    Doble click sobre output/index.html
-#    o, opcionalmente, levantar un servidor estatico:
-cd output && python -m http.server 5500
-# y abrir http://localhost:5500
-```
 
 Para regenerar el informe final S10 (.docx + .pdf):
 
