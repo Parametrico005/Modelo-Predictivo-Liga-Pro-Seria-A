@@ -59,9 +59,6 @@ LigaPro Serie A/
 │   ├── exportar_modelos_json.py                (.joblib -> .json para web)
 │   ├── prediccion.py                           (inferencia batch desde CSV)
 │   ├── predecir_equipo.py                      (inferencia interactiva)
-│   ├── generar_s9_anexos.py                    (genera S9-ANEXOS.docx)
-│   ├── generar_s10_informe_final.py            (genera S10-INFORME.docx)
-│   └── generar_s10_pdf.py                      (genera S10-INFORME.pdf)
 │
 ├── output/                                     <- UI + MODELOS
 │   ├── index.html                              (UI moderna offline)
